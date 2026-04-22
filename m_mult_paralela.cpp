@@ -199,44 +199,85 @@ int main() {
     vector<int> threads = {1, 2, 4, 8};
     int b = 64;
 
-    ofstream file("resultados_paralelo.csv");
-    file << "n,threads,bloques_par, strassen_par\n";
+    ofstream file("resultados_speedup.csv");
+    file << "n,threads,bloques_time,strassen_time,"
+         << "speedup_bloques,eficiencia_bloques,"
+         << "speedup_strassen,eficiencia_strassen\n";
 
     for (int n : sizes) {
+
+        cout << "\n====================\n";
+        cout << "n = " << n << endl;
 
         Matrix A = random_matrix(n);
         Matrix B = random_matrix(n);
 
+        double T1_bloques = 0;
+        double T1_strassen = 0;
+
+        //Medir baseline (1 hilo)
+        omp_set_num_threads(1);
+
+        Matrix C(n, vector<double>(n));
+
+        auto start = high_resolution_clock::now();
+        mult_bloques_parallel(A, B, C, n, b);
+        auto end = high_resolution_clock::now();
+        T1_bloques = duration<double>(end - start).count();
+
+        start = high_resolution_clock::now();
+        Matrix C2 = strassen_parallel(A, B, n);
+        end = high_resolution_clock::now();
+        T1_strassen = duration<double>(end - start).count();
+
+        //Probar distintos hilos
         for (int t : threads) {
 
             omp_set_num_threads(t);
 
-            Matrix C(n, vector<double>(n));
-
-            // bloques paralelo
-            auto start = high_resolution_clock::now();
+            //Bloques
+            start = high_resolution_clock::now();
             mult_bloques_parallel(A, B, C, n, b);
-            auto end = high_resolution_clock::now();
+            end = high_resolution_clock::now();
             double t_bloques = duration<double>(end - start).count();
 
-            // Strassen paralelo
+            //Strassen 
             start = high_resolution_clock::now();
-            Matrix C2 = strassen_parallel(A, B, n);
+            Matrix C3 = strassen_parallel(A, B, n);
             end = high_resolution_clock::now();
             double t_strassen = duration<double>(end - start).count();
 
-            cout << "n=" << n << " threads=" << t << endl;
-            cout << "Bloques_par: " << t_bloques << " s\n";
-            cout << "Strassen_par: " << t_strassen << " s\n\n";
+            //Speedup 
+            double speedup_b = T1_bloques / t_bloques;
+            double eficiencia_b = speedup_b / t;
+
+            double speedup_s = T1_strassen / t_strassen;
+            double eficiencia_s = speedup_s / t;
+
+            cout << "threads = " << t << endl;
+
+            cout << "Bloques: " << t_bloques
+                 << " | Speedup: " << speedup_b
+                 << " | Eficiencia: " << eficiencia_b << endl;
+
+            cout << "Strassen: " << t_strassen
+                 << " | Speedup: " << speedup_s
+                 << " | Eficiencia: " << eficiencia_s << endl;
+
+            cout << endl;
 
             file << n << "," << t << ","
                  << t_bloques << ","
-                 << t_strassen << "\n";
+                 << t_strassen << ","
+                 << speedup_b << ","
+                 << eficiencia_b << ","
+                 << speedup_s << ","
+                 << eficiencia_s << "\n";
         }
     }
 
     file.close();
-    cout << "Datos guardados en resultados_paralelo.csv\n";
+    cout << "\nResultados guardados en resultados_speedup.csv\n";
 
     return 0;
 }
