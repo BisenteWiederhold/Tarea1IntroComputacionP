@@ -9,7 +9,7 @@ df["strassen"] = df["strassen"].replace(-1, None)
 
 sizes = sorted(df["n"].unique())
 
-# ===== TIEMPO vs n =====
+# TIEMPO vs n 
 plt.figure()
 
 # Clásica (tomar un solo valor por n)
@@ -34,7 +34,7 @@ plt.grid()
 plt.savefig("parte1_tiempo_vs_n.png")
 plt.close()
 
-# ===== BLOQUES vs b =====
+#BLOQUES vs b 
 for n in sizes:
     data = df[df["n"] == n]
 

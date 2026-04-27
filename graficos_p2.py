@@ -1,20 +1,21 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Leer datos
 df = pd.read_csv("resultados_speedup.csv")
-
-# Obtener tamaños únicos
 sizes = df["n"].unique()
 
-
-# SPEEDUP
 for n in sizes:
-    data = df[df["n"] == n]
+    data = df[df["n"] == n].sort_values("threads")
 
+    threads = data["threads"]
+
+    # SPEEDUP
     plt.figure()
-    plt.plot(data["threads"], data["speedup_bloques"], marker='o', label="Bloques")
-    plt.plot(data["threads"], data["speedup_strassen"], marker='o', label="Strassen")
+    plt.plot(threads, data["speedup_bloques"], marker='o', label="Bloques")
+    plt.plot(threads, data["speedup_strassen"], marker='o', label="Strassen")
+
+    # línea ideal
+    plt.plot(threads, threads, linestyle='--', label="Ideal")
 
     plt.title(f"Speedup vs Threads (n={n})")
     plt.xlabel("Threads")
@@ -26,14 +27,10 @@ for n in sizes:
     plt.close()
 
 
-# EFICIENCIA
-
-for n in sizes:
-    data = df[df["n"] == n]
-
+    # EFICIENCIA
     plt.figure()
-    plt.plot(data["threads"], data["eficiencia_bloques"], marker='o', label="Bloques")
-    plt.plot(data["threads"], data["eficiencia_strassen"], marker='o', label="Strassen")
+    plt.plot(threads, data["eficiencia_bloques"], marker='o', label="Bloques")
+    plt.plot(threads, data["eficiencia_strassen"], marker='o', label="Strassen")
 
     plt.title(f"Eficiencia vs Threads (n={n})")
     plt.xlabel("Threads")
@@ -44,13 +41,11 @@ for n in sizes:
     plt.savefig(f"eficiencia_n{n}.png")
     plt.close()
 
-# TIEMPOS
-for n in sizes:
-    data = df[df["n"] == n]
 
+    # TIEMPOS
     plt.figure()
-    plt.plot(data["threads"], data["bloques_time"], marker='o', label="Bloques")
-    plt.plot(data["threads"], data["strassen_time"], marker='o', label="Strassen")
+    plt.plot(threads, data["bloques_time"], marker='o', label="Bloques")
+    plt.plot(threads, data["strassen_time"], marker='o', label="Strassen")
 
     plt.title(f"Tiempo vs Threads (n={n})")
     plt.xlabel("Threads")
